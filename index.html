@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuPay Card Transaction Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(17, 25, 40, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.125);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(45deg, #1a1f35, #2c3e50);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+        }
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+        .card-glow {
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.2);
+        }
+        .glass-sidebar {
+            background: rgba(17, 25, 40, 0.95);
+            backdrop-filter: blur(20px);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .refresh-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div class="flex">
+        <!-- Sidebar -->
+        <nav class="glass-sidebar fixed h-full w-20 md:w-64 p-4 flex flex-col">
+            <div class="flex items-center justify-center md:justify-start mb-8">
+                <img src="https://via.placeholder.com/40" alt="Logo" class="w-10 h-10">
+                <span class="hidden md:block ml-3 text-xl font-bold">RuPay Manager</span>
+            </div>
+            
+            <div class="space-y-4">
+                <a href="#" class="flex items-center p-3 text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <i class="bi bi-grid text-xl"></i>
+                    <span class="hidden md:block ml-3">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <i class="bi bi-credit-card text-xl"></i>
+                    <span class="hidden md:block ml-3">Card Management</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <i class="bi bi-journal-text text-xl"></i>
+                    <span class="hidden md:block ml-3">Transaction Logs</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <i class="bi bi-gear text-xl"></i>
+                    <span class="hidden md:block ml-3">UPI Settings</span>
+                </a>
+                <a href="#" class="flex items-center p-3 text-gray-300 hover:bg-gray-800 rounded-lg">
+                    <i class="bi bi-bell text-xl"></i>
+                    <span class="hidden md:block ml-3">Notifications</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="ml-20 md:ml-64 p-6 w-full">
+            <!-- Header -->
+            <header class="glass p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <h1 class="text-2xl font-bold mb-4 md:mb-0">RuPay Card Transaction Manager</h1>
+                    <div class="flex space-x-4">
+                        <button id="refreshBtn" class="p-2 glass hover:bg-gray-700 rounded-lg">
+                            <i class="bi bi-arrow-clockwise text-xl"></i>
+                        </button>
+                        <select class="glass bg-transparent p-2 rounded-lg">
+                            <option value="all">All Cards</option>
+                            <option value="active">Active</option>
+                            <option value="hold">On Hold</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <div class="glass p-4 rounded-lg">
+                        <h3 class="text-gray-400">Total Cards</h3>
+                        <p class="text-2xl font-bold">4</p>
+                    </div>
+                    <div class="glass p-4 rounded-lg">
+                        <h3 class="text-gray-400">Total Spent Today</h3>
+                        <p class="text-2xl font-bold">₹28,50,000</p>
+                    </div>
+                    <div class="glass p-4 rounded-lg">
+                        <h3 class="text-gray-400">Remaining Quota</h3>
+                        <p class="text-2xl font-bold">₹11,50,000</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="cardsContainer">
+                <!-- Cards will be inserted here by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        const cards = [
+            {
+                name: "Rahul Sharma",
+                cardNumber: "****4589",
+                target: 1000000,
+                completed: 750000,
+                status: "Active",
+                upiMappings: 3
+            },
+            {
+                name: "Priya Patel",
+                cardNumber: "****7823",
+                target: 1000000,
+                completed: 950000,
+                status: "Processing",
+                upiMappings: 5
+            },
+            {
+                name: "Amit Kumar",
+                cardNumber: "****1234",
+                target: 1000000,
+                completed: 1000000,
+                status: "Completed",
+                upiMappings: 4
+            },
+            {
+                name: "Neha Singh",
+                cardNumber: "****9076",
+                target: 1000000,
+                completed: 150000,
+                status: "Hold",
+                upiMappings: 2
+            }
+        ];
+
+        function createCardElement(card) {
+            const progress = (card.completed / card.target) * 100;
+            const remaining = card.target - card.completed;
+            
+            const statusColor = {
+                'Active': 'bg-green-500',
+                'Processing': 'bg-yellow-500',
+                'Completed': 'bg-blue-500',
+                'Hold': 'bg-red-500'
+            };
+
+            const cardElement = document.createElement('div');
+            cardElement.className = 'glass card-glow p-6';
+            cardElement.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold">${card.name}</h3>
+                        <p class="text-gray-400">Card: ${card.cardNumber}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-sm ${statusColor[card.status]}">${card.status}</span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span>Progress</span>
+                        <span>${Math.round(progress)}%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="progress-bar bg-blue-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-gray-400">Completed</p>
+                        <p class="text-xl font-bold">₹${(card.completed/100000).toFixed(1)}L</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Remaining</p>
+                        <p class="text-xl font-bold">₹${(remaining/100000).toFixed(1)}L</p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2">
+                    <button class="glass px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
+                        <i class="bi bi-clock-history mr-2"></i> History
+                    </button>
+                    <button class="glass px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
+                        <i class="bi bi-gear mr-2"></i> Settings
+                    </button>
+                    <button class="glass px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center">
+                        <i class="bi bi-phone mr-2"></i> UPI (${card.upiMappings})
+                    </button>
+                </div>
+            `;
+            return cardElement;
+        }
+
+        function initializeDashboard() {
+            const container = document.getElementById('cardsContainer');
+            cards.forEach(card => {
+                container.appendChild(createCardElement(card));
+            });
+        }
+
+        // Refresh button animation
+        const refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.addEventListener('click', () => {
+            const icon = refreshBtn.querySelector('i');
+            icon.classList.add('refresh-spin');
+            setTimeout(() => {
+                icon.classList.remove('refresh-spin');
+            }, 1000);
+        });
+
+        // Initialize the dashboard
+        initializeDashboard();
+
+        // Update time every second
+        setInterval(() => {
+            const now = new Date();
+            document.querySelectorAll('.current-time').forEach(element => {
+                element.textContent = now.toLocaleTimeString();
+            });
+        }, 1000);
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
